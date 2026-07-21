@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 
 from app.config import get_settings
 from app.database import get_db
+from app.ingestion import router as ingestion_router
 from app.schemas import LiveResponse, ReadyResponse
 
 settings = get_settings()
@@ -14,9 +15,10 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins,
     allow_credentials=False,
-    allow_methods=["GET"],
+    allow_methods=["GET", "POST"],
     allow_headers=["*"],
 )
+app.include_router(ingestion_router)
 
 
 @app.get("/health/live", response_model=LiveResponse, tags=["health"])
@@ -34,4 +36,3 @@ def ready(db: Session = Depends(get_db)) -> ReadyResponse:
             detail="Database is unavailable",
         ) from exc
     return ReadyResponse(status="ready", database="reachable")
-

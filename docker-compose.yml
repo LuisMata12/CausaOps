@@ -32,18 +32,38 @@ services:
       timeout: 5s
       retries: 10
 
+  demo-service:
+    build:
+      context: ./apps/demo-service
+    environment:
+      CAUSAOPS_API_URL: http://api:8000
+      STABLE_DELAY_SECONDS: ${STABLE_DELAY_SECONDS:-0.05}
+      TIMEOUT_DELAY_SECONDS: ${TIMEOUT_DELAY_SECONDS:-2.5}
+    ports:
+      - "8100:8100"
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8100/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
   web:
     build:
       context: ./apps/web
     environment:
       API_INTERNAL_URL: ${API_INTERNAL_URL:-http://api:8000}
+      DEMO_INTERNAL_URL: ${DEMO_INTERNAL_URL:-http://demo-service:8100}
       NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
     ports:
       - "3000:3000"
     depends_on:
       api:
         condition: service_healthy
+      demo-service:
+        condition: service_healthy
 
 volumes:
   postgres_data:
-
