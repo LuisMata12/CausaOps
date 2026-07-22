@@ -50,6 +50,26 @@ services:
       timeout: 5s
       retries: 10
 
+  detector:
+    build:
+      context: ./apps/api
+    command: ["python", "-m", "app.detect", "--loop"]
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg://causaops:causaops_local@db:5432/causaops}
+      DETECTION_WINDOW_MINUTES: ${DETECTION_WINDOW_MINUTES:-5}
+      DETECTION_INTERVAL_SECONDS: ${DETECTION_INTERVAL_SECONDS:-30}
+      MINIMUM_REQUEST_COUNT: ${MINIMUM_REQUEST_COUNT:-5}
+      ERROR_RATE_THRESHOLD: ${ERROR_RATE_THRESHOLD:-0.10}
+      LATENCY_P95_THRESHOLD_MS: ${LATENCY_P95_THRESHOLD_MS:-2000}
+      HEALTH_CHECK_FAILURE_THRESHOLD: ${HEALTH_CHECK_FAILURE_THRESHOLD:-3}
+      DEPLOYMENT_CORRELATION_MINUTES: ${DEPLOYMENT_CORRELATION_MINUTES:-15}
+    depends_on:
+      db:
+        condition: service_healthy
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+
   web:
     build:
       context: ./apps/web

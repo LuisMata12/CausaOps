@@ -93,3 +93,53 @@ class DeploymentRead(BaseModel):
     status: str
     changed_files: list[str]
     attributes: dict[str, Any] = Field(serialization_alias="metadata")
+
+
+class IncidentEvidenceRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    evidence_type: str
+    reference_id: str
+    description: str
+    timestamp: datetime
+    payload: dict[str, Any]
+
+
+class IncidentRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    service_id: uuid.UUID
+    deployment_id: uuid.UUID | None
+    fingerprint: str
+    title: str
+    severity: Literal["low", "medium", "high", "critical"]
+    status: Literal[
+        "detected",
+        "investigating",
+        "awaiting_approval",
+        "mitigating",
+        "monitoring",
+        "resolved",
+        "rejected",
+    ]
+    started_at: datetime
+    detected_at: datetime
+    resolved_at: datetime | None
+    event_count: int
+    summary: str
+    detection_context: dict[str, Any]
+    service: ServiceRead
+    deployment: DeploymentRead | None
+
+
+class IncidentDetail(IncidentRead):
+    evidence: list[IncidentEvidenceRead]
+
+
+class DetectionRunResponse(BaseModel):
+    services_checked: int
+    incidents_created: int
+    incidents_updated: int
+    incidents_resolved: int

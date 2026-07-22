@@ -2,8 +2,8 @@ import uuid
 from datetime import UTC, datetime
 from typing import Any
 
-from sqlalchemy import JSON, DateTime, Float, ForeignKey, Integer, String, Text
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import JSON, DateTime, Float, ForeignKey, Integer, String, Text, UniqueConstraint
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
 
@@ -55,3 +55,51 @@ class Deployment(Base):
     status: Mapped[str] = mapped_column(String(30))
     changed_files: Mapped[list[str]] = mapped_column(JSON, default=list)
     attributes: Mapped[dict[str, Any]] = mapped_column("metadata", JSON, default=dict)
+
+
+class Incident(Base):
+    __tablename__ = "incidents"
+
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    service_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("services.id"), index=True)
+    deployment_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("deployments.id"))
+    fingerprint: Mapped[str] = mapped_column(String(180), index=True)
+    title: Mapped[str] = mapped_column(String(240))
+    severity: Mapped[str] = mapped_column(String(20), index=True)
+    status: Mapped[str] = mapped_column(String(30), index=True)
+    started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
+    detected_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
+    resolved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    event_count: Mapped[int] = mapped_column(Integer, default=0)
+    summary: Mapped[str] = mapped_column(Text)
+    detection_context: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
+
+    service: Mapped[Service] = relationship()
+    deployment: Mapped[Deployment | None] = relationship()
+    evidence: Mapped[list["IncidentEvidence"]] = relationship(
+        back_populates="incident",
+        cascade="all, delete-orphan",
+        order_by="IncidentEvidence.timestamp",
+    )
+
+
+class IncidentEvidence(Base):
+    __tablename__ = "incident_evidence"
+    __table_args__ = (
+        UniqueConstraint(
+            "incident_id",
+            "evidence_type",
+            "reference_id",
+            name="uq_incident_evidence_reference",
+        ),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    incident_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("incidents.id"), index=True)
+    evidence_type: Mapped[str] = mapped_column(String(30), index=True)
+    reference_id: Mapped[str] = mapped_column(String(180))
+    description: Mapped[str] = mapped_column(Text)
+    timestamp: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
+    payload: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
+
+    incident: Mapped[Incident] = relationship(back_populates="evidence")

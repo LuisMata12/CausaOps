@@ -40,14 +40,19 @@ function StatusCard({ label, healthy, detail }: { label: string; healthy: boolea
 }
 
 export default async function Home() {
-  const health = await getHealth();
+  const [health, incidents] = await Promise.all([
+    getHealth(),
+    apiGet<Incident[]>("/api/v1/incidents?limit=5", []),
+  ]);
   const allOperational = health.live && health.ready && health.demo;
+  const activeIncidents = incidents.filter((incident) => incident.status !== "resolved");
 
   return (
     <main>
       <nav aria-label="Primary navigation">
         <a className="brand" href="#top" aria-label="CausaOps home">Causa<span>Ops</span></a>
-        <span className="phase">Phase 1 · Foundation</span>
+        <div className="nav-links"><Link href="/">Overview</Link><Link href="/incidents">Incidents</Link></div>
+        <span className="phase">Phase 3 · Detection</span>
       </nav>
 
       <section className="hero" id="top">
@@ -56,6 +61,34 @@ export default async function Home() {
         <p className="lede">
           CausaOps connects telemetry, deployments, and human-approved actions into one auditable incident workflow.
         </p>
+      </section>
+
+      <section aria-labelledby="incident-overview" className="status-section">
+        <div className="section-heading">
+          <div>
+            <p className="eyebrow">Deterministic detection</p>
+            <h2 id="incident-overview">Incident overview</h2>
+          </div>
+          <Link className="text-link" href="/incidents">View all incidents →</Link>
+        </div>
+        <div className="metric-grid">
+          <article className="metric-card"><span>Active incidents</span><strong>{activeIncidents.length}</strong></article>
+          <article className="metric-card"><span>Total detected</span><strong>{incidents.length}</strong></article>
+          <article className="metric-card"><span>Detection method</span><strong className="metric-label">Rules</strong></article>
+        </div>
+        {incidents.length === 0 ? (
+          <div className="empty-state"><h3>No incidents detected</h3><p>The detector has not found a threshold breach in the current telemetry window.</p></div>
+        ) : (
+          <div className="incident-list">
+            {incidents.map((incident) => (
+              <Link className="incident-row" href={`/incidents/${incident.id}`} key={incident.id}>
+                <span className={`severity severity-${incident.severity}`}>{incident.severity}</span>
+                <span className="incident-main"><strong>{incident.title}</strong><small>{incident.service.name} · {formatUtc(incident.detected_at)} UTC</small></span>
+                <span className={`incident-status status-${incident.status}`}>{incident.status.replaceAll("_", " ")}</span>
+              </Link>
+            ))}
+          </div>
+        )}
       </section>
 
       <section aria-labelledby="system-status" className="status-section">
@@ -80,3 +113,6 @@ export default async function Home() {
     </main>
   );
 }
+import Link from "next/link";
+
+import { apiGet, formatUtc, type Incident } from "@/lib/api";

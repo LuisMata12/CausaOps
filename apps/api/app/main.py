@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from app.config import get_settings
 from app.database import get_db
 from app.ingestion import router as ingestion_router
+from app.incidents import router as incidents_router
 from app.schemas import LiveResponse, ReadyResponse
 
 settings = get_settings()
@@ -19,6 +20,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 app.include_router(ingestion_router)
+app.include_router(incidents_router)
 
 
 @app.get("/health/live", response_model=LiveResponse, tags=["health"])
