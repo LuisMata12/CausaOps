@@ -19,6 +19,12 @@ class Settings(BaseSettings):
     latency_p95_threshold_ms: int = 2000
     health_check_failure_threshold: int = 3
     deployment_correlation_minutes: int = 15
+    groq_api_key: str | None = None
+    groq_test_model: str = "openai/gpt-oss-20b"
+    groq_primary_model: str = "openai/gpt-oss-120b"
+    groq_reasoning_effort: str = "medium"
+    groq_timeout_seconds: float = 30.0
+    diagnosis_max_evidence: int = 30
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 

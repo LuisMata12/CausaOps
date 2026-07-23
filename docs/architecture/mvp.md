@@ -10,7 +10,7 @@ The MVP is one product with three applications: the web UI, the API, and (from P
 2. The API validates and stores raw facts before running configurable deterministic rules.
 3. A detector opens or updates an incident and creates evidence references.
 4. Deterministic analysis calculates rates, percentiles, deployment distance, and frequent errors.
-5. An `LLMProvider` receives only the selected facts and returns a strictly validated diagnosis.
+5. Groq receives only the selected facts and returns a strictly validated diagnosis.
 6. The API rejects diagnoses containing evidence references that were not supplied.
 7. A human approves one allow-listed action; an executor performs the simulated rollback.
 8. The detector observes the recovery window and closes the incident only when facts support it.
@@ -26,4 +26,3 @@ Future API modules will follow `routes -> services -> repositories/models`. Prov
 - Validate input at the API boundary and LLM output against a strict schema.
 - Require an authenticated human approval before any state-changing action once authentication is introduced.
 - Keep the platform useful when the configured LLM is unavailable.
-

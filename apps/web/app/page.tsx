@@ -52,7 +52,7 @@ export default async function Home() {
       <nav aria-label="Primary navigation">
         <a className="brand" href="#top" aria-label="CausaOps home">Causa<span>Ops</span></a>
         <div className="nav-links"><Link href="/">Overview</Link><Link href="/incidents">Incidents</Link></div>
-        <span className="phase">Phase 3 · Detection</span>
+        <span className="phase">Phase 4 · Diagnosis</span>
       </nav>
 
       <section className="hero" id="top">

@@ -240,7 +240,11 @@ def attach_evidence(
                 "metadata": event.attributes,
             },
         )
-    if incident.deployment_id is not None and snapshot.last_deployment is not None:
+    if (
+        incident.deployment_id is not None
+        and snapshot.last_deployment is not None
+        and snapshot.last_deployment.id == incident.deployment_id
+    ):
         deployment = snapshot.last_deployment
         upsert_evidence(
             db,

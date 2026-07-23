@@ -21,6 +21,12 @@ services:
     environment:
       DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg://causaops:causaops_local@db:5432/causaops}
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
+      GROQ_TEST_MODEL: ${GROQ_TEST_MODEL:-openai/gpt-oss-20b}
+      GROQ_PRIMARY_MODEL: ${GROQ_PRIMARY_MODEL:-openai/gpt-oss-120b}
+      GROQ_REASONING_EFFORT: ${GROQ_REASONING_EFFORT:-medium}
+      GROQ_TIMEOUT_SECONDS: ${GROQ_TIMEOUT_SECONDS:-30}
+      DIAGNOSIS_MAX_EVIDENCE: ${DIAGNOSIS_MAX_EVIDENCE:-30}
     ports:
       - "8000:8000"
     depends_on:

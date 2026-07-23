@@ -24,6 +24,47 @@ export type Evidence = {
   payload: Record<string, unknown>;
 };
 
+export type EvidenceBackedClaim = {
+  statement: string;
+  confidence: number;
+  evidence_ids: string[];
+};
+
+export type DiagnosisOutput = {
+  schema_version: "1.0";
+  conclusion: "supported" | "insufficient_evidence";
+  summary: string;
+  probable_cause: EvidenceBackedClaim | null;
+  alternative_causes: EvidenceBackedClaim[];
+  recommended_action: {
+    type: "no_action" | "continue_monitoring" | "propose_simulated_rollback";
+    rationale: string;
+    risk: "low" | "medium" | "high";
+    evidence_ids: string[];
+  };
+  missing_information: string[];
+  needs_human_review: true;
+};
+
+export type Diagnosis = {
+  id: string;
+  incident_id: string;
+  provider: "groq";
+  model: string;
+  profile: "test" | "primary";
+  status: "pending" | "completed" | "rejected" | "provider_error";
+  conclusion: "supported" | "insufficient_evidence" | null;
+  confidence: number | null;
+  response_payload: DiagnosisOutput | null;
+  cited_evidence_ids: string[];
+  latency_ms: number | null;
+  input_tokens: number | null;
+  output_tokens: number | null;
+  error_message: string | null;
+  created_at: string;
+  completed_at: string | null;
+};
+
 export type Incident = {
   id: string;
   service_id: string;
@@ -47,6 +88,7 @@ export type Incident = {
   service: Service;
   deployment: Deployment | null;
   evidence?: Evidence[];
+  diagnoses?: Diagnosis[];
 };
 
 const baseUrl = process.env.API_INTERNAL_URL ?? "http://localhost:8000";

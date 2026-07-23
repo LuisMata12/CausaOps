@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { apiGet, formatDuration, formatUtc, type Incident } from "@/lib/api";
+import { DiagnosisPanel } from "./DiagnosisPanel";
 
 export default async function IncidentPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -14,7 +15,7 @@ export default async function IncidentPage({ params }: { params: Promise<{ id: s
       <nav aria-label="Primary navigation">
         <Link className="brand" href="/">Causa<span>Ops</span></Link>
         <div className="nav-links"><Link href="/">Overview</Link><Link href="/incidents">Incidents</Link></div>
-        <span className="phase">Phase 3 · Detection</span>
+        <span className="phase">Phase 4 · Diagnosis</span>
       </nav>
       <div className="breadcrumb"><Link href="/incidents">Incidents</Link><span>/</span><span>{incident.id.slice(0, 8)}</span></div>
       <header className="incident-header">
@@ -31,9 +32,10 @@ export default async function IncidentPage({ params }: { params: Promise<{ id: s
         </div>
         <div className="rule-list">{(context.active_rules ?? []).map((rule) => <span key={rule}>{rule.replaceAll("_", " ")}</span>)}</div>
       </section>
+      <DiagnosisPanel diagnoses={incident.diagnoses ?? []} incidentId={incident.id} />
       <div className="detail-grid">
         <section className="detail-section"><h2>Timeline & evidence</h2><div className="timeline">{incident.evidence?.map((item) => <article className="timeline-item" key={item.id}><span className="timeline-dot" /><div><small>{formatUtc(item.timestamp)} UTC · {item.evidence_type.replaceAll("_", " ")}</small><h3>{item.description}</h3><code>{item.reference_id}</code></div></article>)}</div></section>
-        <aside className="detail-aside"><h2>Correlation</h2><dl><dt>Service</dt><dd>{incident.service.name}</dd><dt>Environment</dt><dd>{incident.service.environment}</dd><dt>Detected</dt><dd>{formatUtc(incident.detected_at)} UTC</dd><dt>Deployment</dt><dd>{incident.deployment?.version ?? "No recent deployment"}</dd>{incident.deployment && <><dt>Commit</dt><dd><code>{incident.deployment.commit_sha}</code></dd><dt>Changed files</dt><dd>{incident.deployment.changed_files.join(", ")}</dd></>}</dl><p className="aside-note">No AI inference has been generated. All information on this page comes from stored telemetry and deterministic calculations.</p></aside>
+        <aside className="detail-aside"><h2>Correlation</h2><dl><dt>Service</dt><dd>{incident.service.name}</dd><dt>Environment</dt><dd>{incident.service.environment}</dd><dt>Detected</dt><dd>{formatUtc(incident.detected_at)} UTC</dd><dt>Deployment</dt><dd>{incident.deployment?.version ?? "No recent deployment"}</dd>{incident.deployment && <><dt>Commit</dt><dd><code>{incident.deployment.commit_sha}</code></dd><dt>Changed files</dt><dd>{incident.deployment.changed_files.join(", ")}</dd></>}</dl><p className="aside-note">Deterministic facts and AI diagnoses remain separate. Groq output is stored only after schema and evidence-reference validation.</p></aside>
       </div>
       <footer><span>CausaOps</span><span>Facts first. Humans in control.</span></footer>
     </main>

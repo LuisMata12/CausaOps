@@ -81,6 +81,11 @@ class Incident(Base):
         cascade="all, delete-orphan",
         order_by="IncidentEvidence.timestamp",
     )
+    diagnoses: Mapped[list["IncidentDiagnosis"]] = relationship(
+        back_populates="incident",
+        cascade="all, delete-orphan",
+        order_by="IncidentDiagnosis.created_at",
+    )
 
 
 class IncidentEvidence(Base):
@@ -103,3 +108,27 @@ class IncidentEvidence(Base):
     payload: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
 
     incident: Mapped[Incident] = relationship(back_populates="evidence")
+
+
+class IncidentDiagnosis(Base):
+    __tablename__ = "incident_diagnoses"
+
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    incident_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("incidents.id"), index=True)
+    provider: Mapped[str] = mapped_column(String(30), default="groq")
+    model: Mapped[str] = mapped_column(String(120), index=True)
+    profile: Mapped[str] = mapped_column(String(20))
+    status: Mapped[str] = mapped_column(String(30), index=True)
+    conclusion: Mapped[str | None] = mapped_column(String(30))
+    confidence: Mapped[float | None] = mapped_column(Float)
+    response_payload: Mapped[dict[str, Any] | None] = mapped_column(JSON)
+    prompt_snapshot: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
+    cited_evidence_ids: Mapped[list[str]] = mapped_column(JSON, default=list)
+    latency_ms: Mapped[int | None] = mapped_column(Integer)
+    input_tokens: Mapped[int | None] = mapped_column(Integer)
+    output_tokens: Mapped[int | None] = mapped_column(Integer)
+    error_message: Mapped[str | None] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(UTC))
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+    incident: Mapped[Incident] = relationship(back_populates="diagnoses")

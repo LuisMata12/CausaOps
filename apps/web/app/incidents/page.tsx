@@ -20,7 +20,7 @@ export default async function IncidentsPage({ searchParams }: { searchParams: Se
       <nav aria-label="Primary navigation">
         <Link className="brand" href="/">Causa<span>Ops</span></Link>
         <div className="nav-links"><Link href="/">Overview</Link><Link aria-current="page" href="/incidents">Incidents</Link></div>
-        <span className="phase">Phase 3 · Detection</span>
+        <span className="phase">Phase 4 · Diagnosis</span>
       </nav>
       <header className="page-header">
         <p className="eyebrow">Incident history</p>

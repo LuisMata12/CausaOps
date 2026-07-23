@@ -6,7 +6,7 @@ CausaOps is a portfolio-grade incident observability and response platform. The 
 
 ## Current status
 
-Phase 3 turns stored telemetry into grouped, evidence-backed incidents:
+Phase 4 adds evidence-bound Groq diagnoses to the deterministic incident workflow:
 
 - Next.js/TypeScript web application with a responsive system-status page.
 - FastAPI service with liveness and PostgreSQL readiness checks.
@@ -16,11 +16,15 @@ Phase 3 turns stored telemetry into grouped, evidence-backed incidents:
 - Configurable deterministic rules for error rate, p95 latency, and health failures.
 - Incident grouping, deployment correlation, evidence, and verified recovery.
 - Dashboard, filterable incident history, and incident detail pages.
+- Strict JSON Schema diagnoses with backend evidence-reference validation.
+- Groq GPT-OSS 20B development analysis and GPT-OSS 120B primary analysis.
+- Persisted provider, model, latency, token usage, prompt snapshot, and rejection reason.
 - A lightweight detector process; no Redis or task queue is required.
 - Docker Compose development stack and container health checks.
 - Unit tests and CI checks.
 
-LLM providers and remediation intentionally belong to later phases. Phase 3 contains no AI-generated claims.
+AI output is kept separate from deterministic facts and cannot execute remediation. Human approval
+and simulated rollback intentionally belong to Phase 5.
 
 ## Architecture
 
@@ -30,6 +34,7 @@ Browser -> Next.js web -> FastAPI API -> PostgreSQL
                          /health/ready -> SELECT 1
 Demo Payments ----------> ingestion API
 Detector ---------------> PostgreSQL -> incidents/evidence
+Incident detail --------> Groq -------> validated diagnoses
 ```
 
 The repository is a small monorepo without an additional build orchestrator. Each app owns its dependencies and tests. The API remains a modular monolith: future domain modules will live under `app/` and share one database transaction boundary. This keeps the MVP easy to run and leaves clean seams for telemetry, incidents, evidence, providers, and actions.
@@ -46,6 +51,17 @@ docker compose up --build
 ```
 
 Open <http://localhost:3000>. API docs are at <http://localhost:8000/docs>.
+
+To enable diagnosis, create a Groq project key and keep it only in the untracked `.env` file:
+
+```bash
+GROQ_API_KEY=your_local_groq_key
+GROQ_TEST_MODEL=openai/gpt-oss-20b
+GROQ_PRIMARY_MODEL=openai/gpt-oss-120b
+```
+
+The key must never be placed in `.env.example` or committed. The incident detail page offers a
+20B development run and a 120B primary run. Unit tests never call Groq or consume API quota.
 
 ```bash
 curl http://localhost:8000/health/live
@@ -124,7 +140,7 @@ docker compose config
 
 Docker verification requires Docker to be installed. CI runs API tests/lint and web lint/typecheck/build on every push and pull request.
 
-## Phase 3 completion criteria
+## Phase 4 completion criteria
 
 - The Compose stack starts PostgreSQL, API, Demo Service, detector, and web services.
 - PostgreSQL and the API report healthy; readiness executes a real database query.
@@ -137,6 +153,11 @@ Docker verification requires Docker to be installed. CI runs API tests/lint and 
 - A recent deployment raises severity and appears as referenced evidence.
 - A later healthy window resolves the existing incident.
 - The dashboard, filterable history, and detail page expose only stored facts and backend calculations.
+- Groq receives only the selected incident facts and evidence identifiers.
+- GPT-OSS output must match a strict schema and cite only supplied incident evidence.
+- Unknown evidence references are rejected and retained as an auditable rejected attempt.
+- Provider errors do not alter detection or incident state.
+- Each accepted diagnosis records model, latency, token usage, confidence, and human-review status.
 - API and Demo Service tests/lint pass; web lint, type checking, and production build pass.
 - No secrets are committed and setup is reproducible from this README.
 
@@ -144,8 +165,8 @@ Docker verification requires Docker to be installed. CI runs API tests/lint and 
 
 1. Foundation and health checks (complete).
 2. Demo Service and telemetry persistence (complete).
-3. Deterministic detection and incident UI (current).
-4. Evidence collection and validated Ollama/Groq diagnoses.
+3. Deterministic detection and incident UI (complete).
+4. Evidence collection and validated Groq diagnoses (current).
 5. Human approval, simulated recovery, verification, and reports.
 6. Evaluation, E2E testing, observability, security, and documentation.
 7. Visual polish and public portfolio demo.

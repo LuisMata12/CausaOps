@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime
 from typing import Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 
 class LiveResponse(BaseModel):
@@ -106,6 +106,68 @@ class IncidentEvidenceRead(BaseModel):
     payload: dict[str, Any]
 
 
+class EvidenceBackedClaim(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    statement: str = Field(min_length=1, max_length=2000)
+    confidence: float = Field(ge=0, le=1)
+    evidence_ids: list[str] = Field(min_length=1, max_length=30)
+
+
+class RecommendedAction(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    type: Literal["no_action", "continue_monitoring", "propose_simulated_rollback"]
+    rationale: str = Field(min_length=1, max_length=2000)
+    risk: Literal["low", "medium", "high"]
+    evidence_ids: list[str] = Field(max_length=30)
+
+
+class DiagnosisOutput(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    schema_version: Literal["1.0"]
+    conclusion: Literal["supported", "insufficient_evidence"]
+    summary: str = Field(min_length=1, max_length=3000)
+    probable_cause: EvidenceBackedClaim | None
+    alternative_causes: list[EvidenceBackedClaim] = Field(max_length=5)
+    recommended_action: RecommendedAction
+    missing_information: list[str] = Field(max_length=20)
+
+    @model_validator(mode="after")
+    def conclusion_matches_cause(self) -> "DiagnosisOutput":
+        if self.conclusion == "supported" and self.probable_cause is None:
+            raise ValueError("A supported conclusion requires a probable cause")
+        if self.conclusion == "insufficient_evidence" and self.probable_cause is not None:
+            raise ValueError("Insufficient evidence cannot include a probable cause")
+        return self
+
+
+class DiagnosisCreate(BaseModel):
+    profile: Literal["test", "primary"] = "test"
+
+
+class IncidentDiagnosisRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    incident_id: uuid.UUID
+    provider: Literal["groq"]
+    model: str
+    profile: Literal["test", "primary"]
+    status: Literal["pending", "completed", "rejected", "provider_error"]
+    conclusion: Literal["supported", "insufficient_evidence"] | None
+    confidence: float | None
+    response_payload: dict[str, Any] | None
+    cited_evidence_ids: list[str]
+    latency_ms: int | None
+    input_tokens: int | None
+    output_tokens: int | None
+    error_message: str | None
+    created_at: datetime
+    completed_at: datetime | None
+
+
 class IncidentRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -136,6 +198,7 @@ class IncidentRead(BaseModel):
 
 class IncidentDetail(IncidentRead):
     evidence: list[IncidentEvidenceRead]
+    diagnoses: list[IncidentDiagnosisRead]
 
 
 class DetectionRunResponse(BaseModel):
