@@ -37,7 +37,7 @@ h1 { font-size: clamp(54px, 8vw, 104px); letter-spacing: -.07em; line-height: .9
 .summary.healthy { color: var(--lime); }
 .summary.unavailable { color: var(--red); }
 .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
-.card { background: linear-gradient(145deg, rgba(255,255,255,.025), transparent), var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 24px; min-height: 172px; }
+.card { background: linear-gradient(145deg, rgba(255,255,255,.026), transparent), var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 24px; min-height: 172px; }
 .card-heading { display: flex; align-items: center; gap: 10px; }
 .card h2 { font-size: 15px; margin: 0; }
 .indicator { width: 8px; height: 8px; border-radius: 50%; background: currentColor; box-shadow: 0 0 14px currentColor; }
