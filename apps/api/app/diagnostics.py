@@ -8,6 +8,7 @@ from groq import Groq
 from pydantic import ValidationError
 from sqlalchemy.orm import Session
 
+from app.approvals import allowed_actions_for
 from app.config import Settings, get_settings
 from app.models import Incident, IncidentDiagnosis
 from app.schemas import DiagnosisOutput
@@ -142,9 +143,7 @@ def build_prompt_snapshot(
             "status": incident.deployment.status,
             "changed_files": incident.deployment.changed_files,
         }
-    allowed_actions = ["no_action", "continue_monitoring"]
-    if incident.status != "resolved":
-        allowed_actions.append("propose_simulated_rollback")
+    allowed_actions = allowed_actions_for(incident)
     return {
         "task": "Produce an evidence-bound incident diagnosis.",
         "incident": {
