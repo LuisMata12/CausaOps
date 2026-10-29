@@ -4,6 +4,7 @@ from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
+from app.auth import router as auth_router
 from app.config import get_settings
 from app.database import get_db
 from app.ingestion import router as ingestion_router
@@ -19,6 +20,7 @@ app.add_middleware(
     allow_methods=["GET", "POST"],
     allow_headers=["*"],
 )
+app.include_router(auth_router)
 app.include_router(ingestion_router)
 app.include_router(incidents_router)
 
