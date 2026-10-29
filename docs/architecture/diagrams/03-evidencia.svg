@@ -1,0 +1,93 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 740" width="1200" height="740" role="img" aria-label="Mecanismo de vinculacion a evidencia: el backend arma un snapshot con identificadores de evidencia persistidos, Groq responde un JSON estricto, y el backend acepta el diagnostico solo si cumple el esquema, cita unicamente evidencia suministrada y recomienda una accion de la allow-list.">
+  <defs>
+    <marker id="c-mut" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#9aa6b2"/></marker>
+    <marker id="c-blu" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#75a8ff"/></marker>
+    <marker id="c-lim" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#b7f34a"/></marker>
+    <marker id="c-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#ff7474"/></marker>
+  </defs>
+  <rect width="1200" height="740" fill="#080b0f"/>
+  <g font-family="ui-sans-serif,-apple-system,'Helvetica Neue',Arial,sans-serif">
+    <text x="40" y="40" fill="#f3f6f8" font-size="22" font-weight="700">C&#243;mo se impide que el modelo invente</text>
+    <text x="40" y="64" fill="#9aa6b2" font-size="13">El modelo no puede citar nada que el backend no le haya entregado. Es una comprobaci&#243;n, no una instrucci&#243;n del prompt.</text>
+
+    <g>
+      <rect x="40" y="130" width="250" height="190" rx="12" fill="#11161d" stroke="#27303b" stroke-width="1.5"/>
+      <text x="60" y="158" fill="#9aa6b2" font-size="10" letter-spacing="1.2">POSTGRESQL</text>
+      <text x="60" y="182" fill="#f3f6f8" font-size="15" font-weight="700">Evidencia del incidente</text>
+      <g font-family="ui-monospace,SFMono-Regular,Menlo,monospace" font-size="10.5" fill="#9aa6b2">
+        <text x="60" y="210">4ae2871c  telemetry_event</text>
+        <text x="60" y="230">2d09c36a  telemetry_event</text>
+        <text x="60" y="250">292b3c2b  deployment</text>
+        <text x="60" y="270">a1f0c7d4  deterministic_analysis</text>
+      </g>
+      <text x="60" y="298" fill="#9aa6b2" font-size="10.5">Cada fila tiene un UUID persistido.</text>
+    </g>
+
+    <line x1="294" y1="225" x2="346" y2="225" stroke="#9aa6b2" stroke-width="1.6" marker-end="url(#c-mut)"/>
+    <text x="320" y="214" fill="#9aa6b2" font-size="10" text-anchor="middle">&#8804; 30</text>
+
+    <g>
+      <rect x="350" y="130" width="250" height="190" rx="12" fill="#11161d" stroke="#b7f34a" stroke-width="1.8"/>
+      <text x="370" y="158" fill="#b7f34a" font-size="10" letter-spacing="1.2">ENTRADA CURADA</text>
+      <text x="370" y="182" fill="#f3f6f8" font-size="15" font-weight="700">Snapshot JSON</text>
+      <text x="370" y="208" fill="#9aa6b2" font-size="11">Identidad, an&#225;lisis determinista,</text>
+      <text x="370" y="225" fill="#9aa6b2" font-size="11">deploy correlacionado, acciones</text>
+      <text x="370" y="242" fill="#9aa6b2" font-size="11">permitidas y evidencia con su id.</text>
+      <text x="370" y="268" fill="#ff7474" font-size="11">Los logs viajan como datos</text>
+      <text x="370" y="285" fill="#ff7474" font-size="11">no confiables, nunca como &#243;rdenes.</text>
+      <text x="370" y="306" fill="#9aa6b2" font-size="10.5">La API key jam&#225;s entra aqu&#237;.</text>
+    </g>
+
+    <line x1="604" y1="225" x2="656" y2="225" stroke="#75a8ff" stroke-width="1.6" marker-end="url(#c-blu)"/>
+    <text x="630" y="214" fill="#75a8ff" font-size="10" text-anchor="middle">strict</text>
+
+    <g>
+      <rect x="660" y="130" width="250" height="190" rx="12" fill="#11161d" stroke="#75a8ff" stroke-width="1.8" stroke-dasharray="6 4"/>
+      <text x="680" y="158" fill="#75a8ff" font-size="10" letter-spacing="1.2">PROVEEDOR EXTERNO</text>
+      <text x="680" y="182" fill="#f3f6f8" font-size="15" font-weight="700">Groq gpt-oss-120b</text>
+      <text x="680" y="212" fill="#9aa6b2" font-size="11">Sin base de datos. Sin shell.</text>
+      <text x="680" y="229" fill="#9aa6b2" font-size="11">Sin navegador. Sin herramientas.</text>
+      <text x="680" y="246" fill="#9aa6b2" font-size="11">Sin memoria entre llamadas.</text>
+      <text x="680" y="276" fill="#75a8ff" font-size="11">Recibe un JSON y devuelve un JSON.</text>
+      <text x="680" y="300" fill="#9aa6b2" font-size="10.5">No puede ejecutar la acci&#243;n que propone.</text>
+    </g>
+
+    <polyline points="785,324 785,352 600,352 600,386" fill="none" stroke="#75a8ff" stroke-width="1.6" marker-end="url(#c-blu)"/>
+    <text x="692" y="344" fill="#75a8ff" font-size="10.5" text-anchor="middle">respuesta JSON</text>
+
+    <g>
+      <rect x="330" y="390" width="540" height="172" rx="12" fill="#11161d" stroke="#f3f6f8" stroke-width="1.8"/>
+      <text x="356" y="418" fill="#f3f6f8" font-size="10" letter-spacing="1.2">EL BACKEND VUELVE A COMPROBAR TODO</text>
+      <text x="356" y="444" fill="#f3f6f8" font-size="15" font-weight="700">Validaci&#243;n</text>
+      <g font-size="11.5" fill="#9aa6b2">
+        <text x="356" y="476"><tspan fill="#b7f34a" font-weight="700">1</tspan>   &#191;La respuesta cumple el esquema Pydantic?</text>
+        <text x="356" y="502"><tspan fill="#b7f34a" font-weight="700">2</tspan>   &#191;Cada evidence_id citado estaba en el snapshot?</text>
+        <text x="356" y="528"><tspan fill="#b7f34a" font-weight="700">3</tspan>   &#191;La acci&#243;n recomendada est&#225; en la allow-list?</text>
+      </g>
+    </g>
+
+    <polyline points="420,566 420,600 250,600 250,634" fill="none" stroke="#ff7474" stroke-width="1.6" marker-end="url(#c-red)"/>
+    <text x="330" y="592" fill="#ff7474" font-size="10.5" text-anchor="middle">falla una</text>
+    <polyline points="780,566 780,600 950,600 950,634" fill="none" stroke="#b7f34a" stroke-width="1.6" marker-end="url(#c-lim)"/>
+    <text x="872" y="592" fill="#b7f34a" font-size="10.5" text-anchor="middle">pasan las tres</text>
+
+    <g>
+      <rect x="110" y="638" width="280" height="76" rx="12" fill="#11161d" stroke="#ff7474" stroke-width="1.8"/>
+      <text x="130" y="664" fill="#ff7474" font-size="13.5" font-weight="700">Rechazado</text>
+      <text x="130" y="684" fill="#9aa6b2" font-size="10.5">Se guarda el motivo para auditor&#237;a.</text>
+      <text x="130" y="701" fill="#9aa6b2" font-size="10.5">El incidente no cambia de estado.</text>
+    </g>
+    <g>
+      <rect x="810" y="638" width="300" height="76" rx="12" fill="#11161d" stroke="#b7f34a" stroke-width="1.8"/>
+      <text x="830" y="664" fill="#b7f34a" font-size="13.5" font-weight="700">Aceptado</text>
+      <text x="830" y="684" fill="#9aa6b2" font-size="10.5">Se persiste con modelo, latencia y tokens.</text>
+      <text x="830" y="701" fill="#f3f6f8" font-size="10.5">El backend fuerza needs_human_review.</text>
+    </g>
+
+    <line x1="40" y1="432" x2="40" y2="508" stroke="#ff7474" stroke-width="2"/>
+    <text x="58" y="448" fill="#f3f6f8" font-size="11.5" font-weight="700">El caso que importa</text>
+    <text x="58" y="470" fill="#9aa6b2" font-size="11">Una respuesta bien formada que</text>
+    <text x="58" y="487" fill="#9aa6b2" font-size="11">cita un id inventado se rechaza</text>
+    <text x="58" y="504" fill="#ff7474" font-size="11">igual: la comprobaci&#243;n 2 falla.</text>
+  </g>
+</svg>

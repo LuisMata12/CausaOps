@@ -1,7 +1,9 @@
 from functools import lru_cache
 
-from pydantic import Field
+from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+DEV_AUTH_SECRET = "causaops-development-secret-do-not-use-in-production"
 
 
 class Settings(BaseSettings):
@@ -25,8 +27,16 @@ class Settings(BaseSettings):
     groq_reasoning_effort: str = "medium"
     groq_timeout_seconds: float = 30.0
     diagnosis_max_evidence: int = 30
+    auth_secret: str = DEV_AUTH_SECRET
+    auth_token_ttl_minutes: int = 720
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+
+    @model_validator(mode="after")
+    def reject_development_secret_outside_development(self) -> "Settings":
+        if self.environment != "development" and self.auth_secret == DEV_AUTH_SECRET:
+            raise ValueError("AUTH_SECRET must be set outside development")
+        return self
 
     @property
     def cors_origins(self) -> list[str]:

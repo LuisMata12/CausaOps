@@ -2,7 +2,17 @@ import uuid
 from datetime import UTC, datetime
 from typing import Any
 
-from sqlalchemy import JSON, DateTime, Float, ForeignKey, Integer, String, Text, UniqueConstraint
+from sqlalchemy import (
+    JSON,
+    Boolean,
+    DateTime,
+    Float,
+    ForeignKey,
+    Integer,
+    String,
+    Text,
+    UniqueConstraint,
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
@@ -81,6 +91,11 @@ class Incident(Base):
         cascade="all, delete-orphan",
         order_by="IncidentEvidence.timestamp",
     )
+    approvals: Mapped[list["IncidentApproval"]] = relationship(
+        back_populates="incident",
+        cascade="all, delete-orphan",
+        order_by="IncidentApproval.created_at",
+    )
     diagnoses: Mapped[list["IncidentDiagnosis"]] = relationship(
         back_populates="incident",
         cascade="all, delete-orphan",
@@ -132,3 +147,36 @@ class IncidentDiagnosis(Base):
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
     incident: Mapped[Incident] = relationship(back_populates="diagnoses")
+
+
+class User(Base):
+    __tablename__ = "users"
+
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    email: Mapped[str] = mapped_column(String(255), unique=True, index=True)
+    display_name: Mapped[str] = mapped_column(String(120))
+    password_hash: Mapped[str] = mapped_column(String(255))
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(UTC))
+
+
+class IncidentApproval(Base):
+    """A human decision about one allow-listed action, tied to the diagnosis that motivated it."""
+
+    __tablename__ = "incident_approvals"
+
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    incident_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("incidents.id"), index=True)
+    diagnosis_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("incident_diagnoses.id"))
+    decided_by: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"), index=True)
+    action_type: Mapped[str] = mapped_column(String(40), index=True)
+    decision: Mapped[str] = mapped_column(String(20), index=True)
+    justification: Mapped[str] = mapped_column(Text)
+    executed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    execution_status: Mapped[str | None] = mapped_column(String(30))
+    execution_detail: Mapped[dict[str, Any] | None] = mapped_column(JSON)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(UTC))
+
+    incident: Mapped[Incident] = relationship(back_populates="approvals")
+    diagnosis: Mapped["IncidentDiagnosis | None"] = relationship()
+    decided_by_user: Mapped[User] = relationship()
