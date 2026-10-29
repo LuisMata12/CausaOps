@@ -199,6 +199,7 @@ class IncidentRead(BaseModel):
 class IncidentDetail(IncidentRead):
     evidence: list[IncidentEvidenceRead]
     diagnoses: list[IncidentDiagnosisRead]
+    approvals: list["IncidentApprovalRead"]
 
 
 class DetectionRunResponse(BaseModel):
@@ -227,3 +228,26 @@ class TokenResponse(BaseModel):
     token_type: Literal["bearer"] = "bearer"
     expires_in: int
     user: UserRead
+
+
+class ApprovalCreate(BaseModel):
+    action_type: Literal["no_action", "continue_monitoring", "propose_simulated_rollback"]
+    decision: Literal["approved", "rejected"]
+    justification: str = Field(min_length=1, max_length=2000)
+    diagnosis_id: uuid.UUID | None = None
+
+
+class IncidentApprovalRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    incident_id: uuid.UUID
+    diagnosis_id: uuid.UUID | None
+    action_type: Literal["no_action", "continue_monitoring", "propose_simulated_rollback"]
+    decision: Literal["approved", "rejected"]
+    justification: str
+    executed_at: datetime | None
+    execution_status: str | None
+    execution_detail: dict[str, Any] | None
+    created_at: datetime
+    decided_by_user: UserRead

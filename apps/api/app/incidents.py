@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
 
+from app.approvals import ApprovalRejectedError, record_decision
 from app.database import get_db
 from app.config import Settings, get_settings
 from app.detection import run_detection
@@ -14,14 +15,17 @@ from app.diagnostics import (
     create_diagnosis,
     get_diagnosis_provider,
 )
-from app.models import Incident, IncidentDiagnosis
+from app.models import Incident, IncidentApproval, IncidentDiagnosis, User
 from app.schemas import (
+    ApprovalCreate,
     DetectionRunResponse,
     DiagnosisCreate,
+    IncidentApprovalRead,
     IncidentDiagnosisRead,
     IncidentDetail,
     IncidentRead,
 )
+from app.security import current_user
 
 router = APIRouter(prefix="/api/v1", tags=["incidents"])
 
@@ -32,6 +36,7 @@ def incident_options():
         selectinload(Incident.deployment),
         selectinload(Incident.evidence),
         selectinload(Incident.diagnoses),
+        selectinload(Incident.approvals).selectinload(IncidentApproval.decided_by_user),
     )
 
 
@@ -118,5 +123,50 @@ def diagnose_incident(
     except DiagnosisProviderError as exc:
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=str(exc),
+        ) from exc
+
+
+@router.get(
+    "/incidents/{incident_id}/approvals",
+    response_model=list[IncidentApprovalRead],
+)
+def list_approvals(
+    incident_id: uuid.UUID,
+    db: Session = Depends(get_db),
+) -> list[IncidentApproval]:
+    if db.get(Incident, incident_id) is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Incident not found")
+    query = (
+        select(IncidentApproval)
+        .options(selectinload(IncidentApproval.decided_by_user))
+        .where(IncidentApproval.incident_id == incident_id)
+        .order_by(IncidentApproval.created_at.desc())
+    )
+    return list(db.scalars(query))
+
+
+@router.post(
+    "/incidents/{incident_id}/approvals",
+    response_model=IncidentApprovalRead,
+    status_code=status.HTTP_201_CREATED,
+)
+def approve_action(
+    incident_id: uuid.UUID,
+    payload: ApprovalCreate,
+    db: Session = Depends(get_db),
+    user: User = Depends(current_user),
+) -> IncidentApproval:
+    """Record one authenticated human decision about an allow-listed action."""
+    incident = db.scalar(
+        select(Incident).options(*incident_options()).where(Incident.id == incident_id)
+    )
+    if incident is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Incident not found")
+    try:
+        return record_decision(db, incident, user, payload)
+    except ApprovalRejectedError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail=str(exc),
         ) from exc
